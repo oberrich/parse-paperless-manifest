@@ -133,10 +133,11 @@ fn main() -> anyhow::Result<()> {
     let mut num_copied = 0u64;
 
     for (_, doc) in documents {
-        let tags_str: Vec<_> = doc.tags.iter().map(|t| t.name.as_str()).collect();
-        if tags_str
+        if doc
+            .tags
             .iter()
-            .any(|t| ["fine", "legal", "private"].contains(t) || t.ends_with("2"))
+            .map(|t| t.name.as_str())
+            .any(|t| ["fine", "legal", "private"].contains(&t) || t.ends_with("2"))
         {
             num_skipped += 1;
             println!(
