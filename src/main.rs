@@ -1,4 +1,5 @@
 use std::{
+    borrow::Borrow,
     collections::HashMap,
     fs::{copy, create_dir_all, remove_dir_all, File},
     io::BufReader,
@@ -30,21 +31,15 @@ struct Document {
 }
 
 fn main() -> anyhow::Result<()> {
-    let mut num_skipped = 0u64;
-    let mut num_copied = 0u64;
+    let root_dir = r"C:\repos\paperless-ngx\docker\compose\export\";
 
     for kind in ["files", "by_tag", "by_year", "by_correspondent"] {
-        let _ = remove_dir_all(format!(
-            r#"C:\repos\paperless-ngx\docker\compose\export\{}"#,
-            kind
-        ));
+        let _ = remove_dir_all(format!(r"{root_dir}\{kind}"));
     }
 
     let mut tags = HashMap::new();
     let mut correspondents = HashMap::new();
     let mut documents = HashMap::new();
-
-    let root_dir = r#"C:\repos\paperless-ngx\docker\compose\export\"#;
 
     let manifest_path: PathBuf = PathBuf::from_iter(&[root_dir, "manifest.json"])
         .iter()
@@ -134,8 +129,11 @@ fn main() -> anyhow::Result<()> {
         }
     }
 
+    let mut num_skipped = 0u64;
+    let mut num_copied = 0u64;
+
     for (_, doc) in documents {
-        let tags_str: Vec<&str> = doc.tags.iter().map(|t| t.name.as_str()).collect();
+        let tags_str: Vec<_> = doc.tags.iter().map(|t| t.name.as_str()).collect();
         if tags_str
             .iter()
             .any(|t| ["fine", "legal", "private"].contains(t) || t.ends_with("2"))
@@ -147,7 +145,7 @@ fn main() -> anyhow::Result<()> {
                 doc.tags
                     .iter()
                     .map(|t| t.clone().name)
-                    .collect::<Vec<String>>()
+                    .collect::<Vec<_>>()
                     .join(", ")
             );
         } else {
